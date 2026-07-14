@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"crypto/tls"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -11,7 +13,8 @@ import (
 	sharedRouter "budgeting-app/golang/backend/shared/router"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/driver/mysql"
+	mysqlDriver "github.com/go-sql-driver/mysql"
+	gormMySQL "gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -36,7 +39,9 @@ func openDatabase(cfg config.Config) *gorm.DB {
 		return nil
 	}
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	registerDatabaseTLS(dsn)
+
+	db, err := gorm.Open(gormMySQL.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Printf("WARNING: gagal terhubung ke database: %v", err)
 		return nil
@@ -81,8 +86,33 @@ func normalizeMySQLDSN(dsn string) string {
 	if query.Get("parseTime") == "" {
 		query.Set("parseTime", "true")
 	}
+	if strings.Contains(parsed.Hostname(), "tidbcloud.com") && (query.Get("tls") == "" || query.Get("tls") == "true") {
+		query.Set("tls", "tidb")
+	}
 
 	return parsed.User.Username() + ":" + password + "@tcp(" + parsed.Host + ")/" + strings.TrimPrefix(parsed.Path, "/") + "?" + query.Encode()
+}
+
+func registerDatabaseTLS(dsn string) {
+	dbConfig, err := mysqlDriver.ParseDSN(dsn)
+	if err != nil || dbConfig.TLSConfig != "tidb" {
+		return
+	}
+
+	serverName := dbConfig.Addr
+	if host, _, err := net.SplitHostPort(dbConfig.Addr); err == nil {
+		serverName = host
+	}
+	if serverName == "" {
+		return
+	}
+
+	if err := mysqlDriver.RegisterTLSConfig("tidb", &tls.Config{
+		MinVersion: tls.VersionTLS12,
+		ServerName: serverName,
+	}); err != nil && !strings.Contains(err.Error(), "already registered") {
+		log.Printf("WARNING: gagal mendaftarkan TLS config TiDB: %v", err)
+	}
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {

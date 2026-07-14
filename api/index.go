@@ -77,12 +77,12 @@ func normalizeMySQLDSN(dsn string) string {
 	}
 
 	password, _ := parsed.User.Password()
-	params := parsed.RawQuery
-	if params == "" {
-		params = "parseTime=true"
+	query := parsed.Query()
+	if query.Get("parseTime") == "" {
+		query.Set("parseTime", "true")
 	}
 
-	return parsed.User.Username() + ":" + password + "@tcp(" + parsed.Host + ")/" + strings.TrimPrefix(parsed.Path, "/") + "?" + params
+	return parsed.User.Username() + ":" + password + "@tcp(" + parsed.Host + ")/" + strings.TrimPrefix(parsed.Path, "/") + "?" + query.Encode()
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {

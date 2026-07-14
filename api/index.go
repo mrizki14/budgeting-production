@@ -3,7 +3,9 @@ package handler
 import (
 	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	"budgeting-app/golang/backend/shared/config"
 	sharedRouter "budgeting-app/golang/backend/shared/router"
@@ -23,14 +25,14 @@ func init() {
 		cfg.JWTSecret = jwtSecret
 	}
 
-	db := openDatabase()
+	db := openDatabase(cfg)
 	router = sharedRouter.New(db, cfg)
 }
 
-func openDatabase() *gorm.DB {
-	dsn := os.Getenv("DATABASE_URL")
+func openDatabase(cfg config.Config) *gorm.DB {
+	dsn := databaseDSN(cfg)
 	if dsn == "" {
-		log.Println("WARNING: DATABASE_URL belum disetting di Vercel Environment Variables")
+		log.Println("WARNING: konfigurasi database belum disetting di Vercel Environment Variables")
 		return nil
 	}
 
@@ -50,6 +52,37 @@ func openDatabase() *gorm.DB {
 	sqlDB.SetMaxIdleConns(1)
 
 	return db
+}
+
+func databaseDSN(cfg config.Config) string {
+	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+		return normalizeMySQLDSN(dsn)
+	}
+
+	if os.Getenv("DB_HOST") == "" || os.Getenv("DB_NAME") == "" || os.Getenv("DB_USER") == "" {
+		return ""
+	}
+
+	return cfg.DSN()
+}
+
+func normalizeMySQLDSN(dsn string) string {
+	if !strings.Contains(dsn, "://") {
+		return dsn
+	}
+
+	parsed, err := url.Parse(dsn)
+	if err != nil || parsed.Scheme != "mysql" {
+		return dsn
+	}
+
+	password, _ := parsed.User.Password()
+	params := parsed.RawQuery
+	if params == "" {
+		params = "parseTime=true"
+	}
+
+	return parsed.User.Username() + ":" + password + "@tcp(" + parsed.Host + ")/" + strings.TrimPrefix(parsed.Path, "/") + "?" + params
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {

@@ -1,0 +1,10 @@
+import Field from '../../components/ui/Field'
+import { Link } from 'react-router-dom'
+
+export default function TransactionForm({ value, setValue, categories, errors, submitLabel, submitting }) {
+  const choices = categories.filter((item) => item.type === value.type)
+  function changeType(type) { const selected = categories.find((item) => String(item.id) === String(value.category_id)); setValue({ ...value, type, category_id: selected?.type === type ? value.category_id : '' }) }
+  return <><div className="grid gap-5 sm:grid-cols-2"><Field label="Type" error={errors.type?.[0]}><select value={value.type} onChange={(e) => changeType(e.target.value)} required><option value="income">Income</option><option value="expense">Expense</option></select></Field><Field label="Category" error={(errors.category_id ?? errors.transaction)?.[0]}><select value={value.category_id} onChange={(e) => setValue({ ...value, category_id: e.target.value })} required><option value="" disabled>Pilih kategori</option>{choices.map((item) => <option key={item.id} value={item.id}>{item.name} ({item.type === 'income' ? 'Income' : 'Expense'})</option>)}</select></Field></div><div className="grid gap-5 sm:grid-cols-2"><Field label="Amount" error={errors.amount?.[0]}><input type="number" step="0.01" min="0.01" value={value.amount} onChange={(e) => setValue({ ...value, amount: e.target.value })} required /></Field><Field label="Date" error={errors.date?.[0]}><input type="date" value={value.date} onChange={(e) => setValue({ ...value, date: e.target.value })} required /></Field></div><Field label="Description" error={errors.description?.[0]}><textarea rows="4" value={value.description} onChange={(e) => setValue({ ...value, description: e.target.value })} placeholder="Catatan transaksi" /></Field><div className="flex gap-3"><button disabled={submitting} type="submit" className="budget-button budget-button-primary">{submitLabel}</button><LinkButton /></div></>
+}
+
+function LinkButton() { return <Link to="/transactions" className="budget-button budget-button-secondary">Cancel</Link> }

@@ -1,0 +1,16 @@
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import Flash from '../../components/ui/Flash'
+import { apiPost, apiPut, apiRequest } from '../../lib/api'
+import BudgetForm from './BudgetForm'
+
+export default function BudgetEditorPage({ edit = false }) {
+  const now = new Date(); const { id } = useParams(); const navigate = useNavigate()
+  const [value, setValue] = useState({ category_id: '', month: now.getMonth() + 1, year: now.getFullYear(), limit_amount: '' })
+  const [categories, setCategories] = useState(null); const [errors, setErrors] = useState({}); const [message, setMessage] = useState(''); const [submitting, setSubmitting] = useState(false)
+  useEffect(() => { Promise.all([apiRequest('/categories'), edit ? apiRequest(`/budgets/${id}`) : Promise.resolve(null)]).then(([items, budget]) => { setCategories(items.filter((item) => item.type === 'expense')); if (budget) setValue({ category_id: String(budget.category_id), month: budget.month, year: budget.year, limit_amount: budget.limit_amount }) }).catch((e) => setMessage(e.message)) }, [edit, id])
+  async function submit(event) { event.preventDefault(); setSubmitting(true); setErrors({}); const payload = { category_id: Number(value.category_id), month: Number(value.month), year: Number(value.year), limit_amount: Number(value.limit_amount) }; try { if (edit) await apiPut(`/budgets/${id}`, payload); else await apiPost('/budgets', payload); navigate('/budgets', { state: { status: edit ? 'Budget updated successfully' : 'Budget created successfully' } }) } catch (e) { setErrors(e.errors ?? {}); setMessage(e.message) } finally { setSubmitting(false) } }
+  if (!categories) return <div className="app-loading">Loading...</div>
+  const title = edit ? 'Edit Budget' : 'Create Budget'; const copy = edit ? 'Perbarui limit budget bulanan sesuai kebutuhan.' : 'Tambahkan limit pengeluaran per kategori dan periode.'
+  return <section className="mx-auto max-w-3xl space-y-8 px-4 py-6 md:px-8 md:py-8"><div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between"><div><h1 className="text-3xl font-bold text-slate-900">{title}</h1><p className="mt-1 text-sm text-slate-500">{copy}</p></div><Link to="/budgets" className="budget-button budget-button-secondary">Back to Budgets</Link></div>{message && <Flash message={message} tone="error" />}{!edit && categories.length === 0 ? <section className="budget-panel"><h2 className="text-xl font-semibold text-slate-900">Kategori expense belum tersedia</h2><p className="mt-2 text-sm text-slate-500">Buat kategori bertipe expense terlebih dahulu sebelum membuat budget.</p><Link to="/categories/create" className="budget-button budget-button-primary mt-6">Create Expense Category</Link></section> : <section className="budget-panel"><form onSubmit={submit} className="space-y-5"><BudgetForm value={value} setValue={setValue} categories={categories} errors={errors} /><div className="flex flex-col gap-3 pt-2 sm:flex-row"><button disabled={submitting} type="submit" className="budget-button budget-button-primary">{edit ? 'Update Budget' : 'Save Budget'}</button><Link to="/budgets" className="budget-button budget-button-secondary">Cancel</Link></div></form></section>}</section>
+}

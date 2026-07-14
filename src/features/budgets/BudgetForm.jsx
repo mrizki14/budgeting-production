@@ -1,0 +1,7 @@
+import Field from '../../components/ui/Field'
+import { monthName } from '../../lib/format'
+
+export default function BudgetForm({ value, setValue, categories, errors }) {
+  const year = new Date().getFullYear()
+  return <><Field label="Category" error={errors.category_id?.[0]}><select value={value.category_id} onChange={(e) => setValue({ ...value, category_id: e.target.value })} required><option value="" disabled>Pilih kategori expense</option>{categories.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></Field><div className="grid gap-5 sm:grid-cols-2"><Field label="Month" error={errors.month?.[0]}><select value={value.month} onChange={(e) => setValue({ ...value, month: e.target.value })} required>{Array.from({ length: 12 }, (_, i) => i + 1).map((month) => <option key={month} value={month}>{monthName(month)}</option>)}</select></Field><Field label="Year" error={errors.year?.[0]}><select value={value.year} onChange={(e) => setValue({ ...value, year: e.target.value })} required>{[year - 1, year, year + 1].map((item) => <option key={item} value={item}>{item}</option>)}</select></Field></div><Field label="Budget Limit" error={(errors.limit_amount ?? errors.budget)?.[0]}><input type="number" step="0.01" min="0.01" value={value.limit_amount} onChange={(e) => setValue({ ...value, limit_amount: e.target.value })} placeholder="Contoh: 1500000" required /></Field></>
+}

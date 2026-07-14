@@ -1,7 +1,7 @@
 package database
 
 import (
-	"budgeting-app/golang/internal/shared/config"
+	"budgeting-app/golang/backend/shared/config"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

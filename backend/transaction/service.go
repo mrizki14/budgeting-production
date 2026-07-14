@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"budgeting-app/golang/internal/category"
+	"budgeting-app/golang/backend/category"
 )
 
 var (

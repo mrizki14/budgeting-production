@@ -6,7 +6,7 @@ import (
 	"os"
 
 	// Import module auth Anda (sesuaikan path dengan module di go.mod)
-	"budgeting-app/golang/internal/auth"
+	"budgeting-app/golang/backend/auth"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -79,7 +79,7 @@ func init() {
 // Vercel mengharapkan signature standar Go (http.ResponseWriter, *http.Request)
 func Handler(w http.ResponseWriter, r *http.Request) {
 	if router == nil {
-		http.Error(w, `{"error": "Router tidak terinisialisasi. Periksa DATABASE_URL."}`, http.StatusInternalServerError)
+		http.Error(w, `{"error": "Router tidak terinisialisasi. Periksa DATABASE_URL."}`, http.StatusbackendServerError)
 		return
 	}
 

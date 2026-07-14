@@ -1,15 +1,15 @@
 package router
 
 import (
-	"budgeting-app/golang/internal/auth"
-	"budgeting-app/golang/internal/budget"
-	"budgeting-app/golang/internal/category"
-	"budgeting-app/golang/internal/dashboard"
-	"budgeting-app/golang/internal/report"
-	"budgeting-app/golang/internal/shared/config"
-	"budgeting-app/golang/internal/shared/health"
-	"budgeting-app/golang/internal/shared/middleware"
-	"budgeting-app/golang/internal/transaction"
+	"budgeting-app/golang/backend/auth"
+	"budgeting-app/golang/backend/budget"
+	"budgeting-app/golang/backend/category"
+	"budgeting-app/golang/backend/dashboard"
+	"budgeting-app/golang/backend/report"
+	"budgeting-app/golang/backend/shared/config"
+	"budgeting-app/golang/backend/shared/health"
+	"budgeting-app/golang/backend/shared/middleware"
+	"budgeting-app/golang/backend/transaction"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

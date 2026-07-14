@@ -5,8 +5,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"budgeting-app/golang/internal/shared/config"
-	"budgeting-app/golang/internal/shared/router"
+	"budgeting-app/golang/backend/shared/config"
+	"budgeting-app/golang/backend/shared/router"
 )
 
 func TestHealthPing(t *testing.T) {

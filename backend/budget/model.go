@@ -3,7 +3,7 @@ package budget
 import (
 	"time"
 
-	"budgeting-app/golang/internal/category"
+	"budgeting-app/golang/backend/category"
 )
 
 type Budget struct {

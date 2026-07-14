@@ -3,7 +3,7 @@ package budget
 import (
 	"errors"
 
-	"budgeting-app/golang/internal/category"
+	"budgeting-app/golang/backend/category"
 )
 
 var (

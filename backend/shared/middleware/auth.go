@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	authshared "budgeting-app/golang/internal/shared/auth"
-	"budgeting-app/golang/internal/shared/response"
+	authshared "budgeting-app/golang/backend/shared/auth"
+	"budgeting-app/golang/backend/shared/response"
 	"github.com/gin-gonic/gin"
 )
 

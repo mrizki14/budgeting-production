@@ -3,7 +3,7 @@ package dashboard
 import (
 	"net/http"
 
-	"budgeting-app/golang/internal/shared/response"
+	"budgeting-app/golang/backend/shared/response"
 	"github.com/gin-gonic/gin"
 )
 

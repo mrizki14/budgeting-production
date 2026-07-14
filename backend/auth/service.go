@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	authshared "budgeting-app/golang/internal/shared/auth"
+	authshared "budgeting-app/golang/backend/shared/auth"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )

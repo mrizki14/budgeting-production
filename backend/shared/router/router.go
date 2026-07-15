@@ -1,6 +1,11 @@
 package router
 
 import (
+	"context"
+	"net/http"
+	"strings"
+	"time"
+
 	"budgeting-app/golang/backend/auth"
 	"budgeting-app/golang/backend/budget"
 	"budgeting-app/golang/backend/category"
@@ -9,6 +14,7 @@ import (
 	"budgeting-app/golang/backend/shared/config"
 	"budgeting-app/golang/backend/shared/health"
 	"budgeting-app/golang/backend/shared/middleware"
+	"budgeting-app/golang/backend/shared/response"
 	"budgeting-app/golang/backend/transaction"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,8 +26,10 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 
 	healthHandler := health.NewHandler()
 	r.GET("/api/health", healthHandler.Ping)
+	r.GET("/api/ready", databaseReady(db))
 
 	if db == nil {
+		registerDatabaseUnavailableRoutes(r)
 		return r
 	}
 
@@ -63,4 +71,46 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 	protected.GET("/reports/summary", reportHandler.Summary)
 
 	return r
+}
+
+func databaseReady(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if db == nil {
+			response.Error(c, http.StatusServiceUnavailable, "Database is not configured or unavailable", gin.H{"database": []string{"database connection is not initialized"}})
+			return
+		}
+
+		sqlDB, err := db.DB()
+		if err != nil {
+			response.Error(c, http.StatusServiceUnavailable, "Database is unavailable", gin.H{"database": []string{err.Error()}})
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(c.Request.Context(), 3*time.Second)
+		defer cancel()
+		if err := sqlDB.PingContext(ctx); err != nil {
+			response.Error(c, http.StatusServiceUnavailable, "Database is unavailable", gin.H{"database": []string{err.Error()}})
+			return
+		}
+
+		response.Success(c, http.StatusOK, "Database is ready", gin.H{"database": "ok"})
+	}
+}
+
+func registerDatabaseUnavailableRoutes(r *gin.Engine) {
+	unavailable := func(c *gin.Context) {
+		response.Error(c, http.StatusServiceUnavailable, "Database is not configured or unavailable", gin.H{"database": []string{"check DATABASE_URL and Vercel function logs"}})
+	}
+
+	r.POST("/api/auth/register", unavailable)
+	r.POST("/api/auth/login", unavailable)
+
+	r.NoRoute(func(c *gin.Context) {
+		if strings.HasPrefix(c.Request.URL.Path, "/api/") {
+			unavailable(c)
+			return
+		}
+
+		c.Status(http.StatusNotFound)
+	})
 }

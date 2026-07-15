@@ -18,7 +18,8 @@ describe('apiRequest', () => {
     const result = await apiRequest('/categories')
 
     expect(result).toEqual({ id: 7 })
-    expect(fetch).toHaveBeenCalledWith('http://127.0.0.1:8080/api/categories', expect.objectContaining({
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL ?? '/api'
+    expect(fetch).toHaveBeenCalledWith(`${apiBaseUrl}/categories`, expect.objectContaining({
       headers: expect.objectContaining({ Authorization: 'Bearer secret' }),
     }))
   })

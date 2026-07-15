@@ -28,15 +28,16 @@ func init() {
 		cfg.JWTSecret = jwtSecret
 	}
 
-	db := openDatabase(cfg)
-	router = sharedRouter.New(db, cfg)
+	db, dbError := openDatabase(cfg)
+	router = sharedRouter.NewWithDatabaseError(db, cfg, dbError)
 }
 
-func openDatabase(cfg config.Config) *gorm.DB {
+func openDatabase(cfg config.Config) (*gorm.DB, string) {
 	dsn := databaseDSN(cfg)
 	if dsn == "" {
-		log.Println("WARNING: konfigurasi database belum disetting di Vercel Environment Variables")
-		return nil
+		message := "konfigurasi database belum disetting di Vercel Environment Variables"
+		log.Printf("WARNING: %s", message)
+		return nil, message
 	}
 
 	registerDatabaseTLS(dsn)
@@ -44,19 +45,19 @@ func openDatabase(cfg config.Config) *gorm.DB {
 	db, err := gorm.Open(gormMySQL.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Printf("WARNING: gagal terhubung ke database: %v", err)
-		return nil
+		return nil, err.Error()
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
 		log.Printf("WARNING: gagal mengambil sql.DB dari GORM: %v", err)
-		return db
+		return db, ""
 	}
 
 	sqlDB.SetMaxOpenConns(2)
 	sqlDB.SetMaxIdleConns(1)
 
-	return db
+	return db, ""
 }
 
 func databaseDSN(cfg config.Config) string {

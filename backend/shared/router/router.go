@@ -21,15 +21,19 @@ import (
 )
 
 func New(db *gorm.DB, cfg config.Config) *gin.Engine {
+	return NewWithDatabaseError(db, cfg, "")
+}
+
+func NewWithDatabaseError(db *gorm.DB, cfg config.Config, dbError string) *gin.Engine {
 	r := gin.Default()
 	r.Use(middleware.CORS(cfg.CORSAllowedOrigin))
 
 	healthHandler := health.NewHandler()
 	r.GET("/api/health", healthHandler.Ping)
-	r.GET("/api/ready", databaseReady(db))
+	r.GET("/api/ready", databaseReady(db, dbError))
 
 	if db == nil {
-		registerDatabaseUnavailableRoutes(r)
+		registerDatabaseUnavailableRoutes(r, dbError)
 		return r
 	}
 
@@ -73,10 +77,13 @@ func New(db *gorm.DB, cfg config.Config) *gin.Engine {
 	return r
 }
 
-func databaseReady(db *gorm.DB) gin.HandlerFunc {
+func databaseReady(db *gorm.DB, dbError string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if db == nil {
-			response.Error(c, http.StatusServiceUnavailable, "Database is not configured or unavailable", gin.H{"database": []string{"database connection is not initialized"}})
+			if dbError == "" {
+				dbError = "database connection is not initialized"
+			}
+			response.Error(c, http.StatusServiceUnavailable, "Database is not configured or unavailable", gin.H{"database": []string{dbError}})
 			return
 		}
 
@@ -97,9 +104,12 @@ func databaseReady(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func registerDatabaseUnavailableRoutes(r *gin.Engine) {
+func registerDatabaseUnavailableRoutes(r *gin.Engine, dbError string) {
 	unavailable := func(c *gin.Context) {
-		response.Error(c, http.StatusServiceUnavailable, "Database is not configured or unavailable", gin.H{"database": []string{"check DATABASE_URL and Vercel function logs"}})
+		if dbError == "" {
+			dbError = "check DATABASE_URL and Vercel function logs"
+		}
+		response.Error(c, http.StatusServiceUnavailable, "Database is not configured or unavailable", gin.H{"database": []string{dbError}})
 	}
 
 	r.POST("/api/auth/register", unavailable)

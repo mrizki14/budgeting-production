@@ -95,15 +95,11 @@ func normalizeMySQLDSN(dsn string) string {
 }
 
 func registerDatabaseTLS(dsn string) {
-	dbConfig, err := mysqlDriver.ParseDSN(dsn)
-	if err != nil || dbConfig.TLSConfig != "tidb" {
+	if !strings.Contains(dsn, "tls=tidb") {
 		return
 	}
 
-	serverName := dbConfig.Addr
-	if host, _, err := net.SplitHostPort(dbConfig.Addr); err == nil {
-		serverName = host
-	}
+	serverName := databaseServerName(dsn)
 	if serverName == "" {
 		return
 	}
@@ -114,6 +110,27 @@ func registerDatabaseTLS(dsn string) {
 	}); err != nil && !strings.Contains(err.Error(), "already registered") {
 		log.Printf("WARNING: gagal mendaftarkan TLS config TiDB: %v", err)
 	}
+}
+
+func databaseServerName(dsn string) string {
+	start := strings.Index(dsn, "@tcp(")
+	if start == -1 {
+		return ""
+	}
+	start += len("@tcp(")
+
+	end := strings.Index(dsn[start:], ")")
+	if end == -1 {
+		return ""
+	}
+
+	addr := dsn[start : start+end]
+	serverName := addr
+	if host, _, err := net.SplitHostPort(addr); err == nil {
+		serverName = host
+	}
+
+	return serverName
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {

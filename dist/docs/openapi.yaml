@@ -1,0 +1,1214 @@
+openapi: 3.0.3
+info:
+  title: Budgeting API Documentation
+  description: Dokumentasi API untuk aplikasi Budgeting. Gunakan JWT Token di header `Authorization: Bearer <token>` untuk mengakses endpoint yang dilindungi.
+  version: 1.0.0
+servers:
+  - url: /
+    description: Server default (relatif)
+paths:
+  /api/health:
+    get:
+      summary: Health check
+      description: Cek apakah API server berjalan
+      responses:
+        '200':
+          description: Server berjalan normal
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: OK
+
+  /api/ready:
+    get:
+      summary: Ready check
+      description: Cek apakah koneksi database siap
+      responses:
+        '200':
+          description: Database siap
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Database is ready
+                  data:
+                    type: object
+                    properties:
+                      database:
+                        type: string
+                        example: ok
+        '503':
+          description: Database tidak tersedia
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/register:
+    post:
+      summary: Register user baru
+      description: Daftarkan akun baru dan dapatkan JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: Budi Santoso
+                email:
+                  type: string
+                  format: email
+                  example: budi@example.com
+                password:
+                  type: string
+                  minLength: 8
+                  example: rahasia123
+      responses:
+        '201':
+          description: Register sukses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Register success
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      user:
+                        $ref: '#/components/schemas/User'
+        '422':
+          description: Validasi gagal / Email sudah terdaftar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/login:
+    post:
+      summary: Login user
+      description: Masuk menggunakan email dan password untuk mendapatkan JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: budi@example.com
+                password:
+                  type: string
+                  example: rahasia123
+      responses:
+        '200':
+          description: Login sukses
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login success
+                  data:
+                    type: object
+                    properties:
+                      token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      user:
+                        $ref: '#/components/schemas/User'
+        '401':
+          description: Kredensial tidak valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/auth/me:
+    get:
+      summary: Dapatkan profil user saat ini
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User fetched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User fetched
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '404':
+          description: User tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/settings/profile:
+    put:
+      summary: Perbarui nama dan email user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+              properties:
+                name:
+                  type: string
+                  maxLength: 255
+                  example: Budi Santoso Baru
+                email:
+                  type: string
+                  format: email
+                  maxLength: 255
+                  example: budi.baru@example.com
+      responses:
+        '200':
+          description: Profil berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profil berhasil diperbarui.
+                  data:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validasi gagal (nama kosong, email tidak valid, atau email sudah terpakai)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/settings/password:
+    put:
+      summary: Ganti password user
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - current_password
+                - password
+                - password_confirmation
+              properties:
+                current_password:
+                  type: string
+                  example: rahasia123
+                password:
+                  type: string
+                  minLength: 8
+                  example: barurahasia123
+                password_confirmation:
+                  type: string
+                  example: barurahasia123
+      responses:
+        '200':
+          description: Password berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Password berhasil diperbarui.
+                  data:
+                    type: object
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validasi gagal (password lama salah, konfirmasi password tidak cocok, atau password terlalu pendek)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/dashboard:
+    get:
+      summary: Dapatkan ringkasan dashboard bulan ini
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Dashboard fetched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Dashboard fetched
+                  data:
+                    $ref: '#/components/schemas/DashboardSummary'
+        '401':
+          description: Unauthorized
+
+  /api/categories:
+    get:
+      summary: Tampilkan semua kategori milik user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar kategori berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Categories fetched
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Category'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Buat kategori baru
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+              properties:
+                name:
+                  type: string
+                  example: Makanan & Minuman
+                type:
+                  type: string
+                  enum: [income, expense]
+                  example: expense
+      responses:
+        '201':
+          description: Kategori berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Category created successfully
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          description: Unauthorized
+        '422':
+          description: Validasi gagal (misal type bukan income/expense atau nama kosong)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/categories/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID Kategori
+        schema:
+          type: integer
+    get:
+      summary: Dapatkan detail satu kategori
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Detail kategori berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Category fetched
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (kategori bukan milik user ini)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      summary: Perbarui kategori
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+              properties:
+                name:
+                  type: string
+                  example: Kebutuhan Rumah Tangga
+                type:
+                  type: string
+                  enum: [income, expense]
+                  example: expense
+      responses:
+        '200':
+          description: Kategori berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Category updated successfully
+                  data:
+                    $ref: '#/components/schemas/Category'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    delete:
+      summary: Hapus kategori
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Kategori berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Category deleted successfully
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Kategori tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/transactions:
+    get:
+      summary: Tampilkan semua transaksi milik user
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          required: false
+          description: Filter tipe transaksi (income atau expense)
+          schema:
+            type: string
+            enum: [income, expense]
+        - name: category_id
+          in: query
+          required: false
+          description: Filter berdasarkan ID kategori
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Daftar transaksi berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transactions fetched
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Buat transaksi baru
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category_id
+                - amount
+                - type
+                - date
+              properties:
+                category_id:
+                  type: integer
+                  example: 1
+                amount:
+                  type: number
+                  format: double
+                  example: 75000
+                type:
+                  type: string
+                  enum: [income, expense]
+                  example: expense
+                date:
+                  type: string
+                  format: date
+                  description: Format tanggal YYYY-MM-DD
+                  example: "2026-07-16"
+                description:
+                  type: string
+                  example: Belanja mingguan di supermarket
+      responses:
+        '201':
+          description: Transaksi berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transaction created successfully
+                  data:
+                    $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (kategori bukan milik user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Validasi gagal (misal format tanggal salah atau input tidak lengkap)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/transactions/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID Transaksi
+        schema:
+          type: integer
+    get:
+      summary: Dapatkan detail satu transaksi
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Detail transaksi berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transaction fetched
+                  data:
+                    $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Transaksi tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      summary: Perbarui transaksi
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category_id
+                - amount
+                - type
+                - date
+              properties:
+                category_id:
+                  type: integer
+                  example: 1
+                amount:
+                  type: number
+                  format: double
+                  example: 90000
+                type:
+                  type: string
+                  enum: [income, expense]
+                  example: expense
+                date:
+                  type: string
+                  format: date
+                  example: "2026-07-16"
+                description:
+                  type: string
+                  example: Belanja bulanan (direvisi)
+      responses:
+        '200':
+          description: Transaksi berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transaction updated successfully
+                  data:
+                    $ref: '#/components/schemas/Transaction'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    delete:
+      summary: Hapus transaksi
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Transaksi berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Transaction deleted successfully
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Transaksi tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/budgets:
+    get:
+      summary: Tampilkan semua anggaran (budget) milik user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Daftar anggaran berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Budgets fetched
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Budget'
+        '401':
+          description: Unauthorized
+    post:
+      summary: Buat anggaran baru
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category_id
+                - month
+                - year
+                - limit_amount
+              properties:
+                category_id:
+                  type: integer
+                  example: 1
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 7
+                year:
+                  type: integer
+                  example: 2026
+                limit_amount:
+                  type: number
+                  format: double
+                  example: 1500000
+      responses:
+        '201':
+          description: Anggaran berhasil dibuat
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Budget created successfully
+                  data:
+                    $ref: '#/components/schemas/Budget'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden (kategori bukan milik user)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/budgets/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: ID Anggaran
+        schema:
+          type: integer
+    get:
+      summary: Dapatkan detail satu anggaran
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Detail anggaran berhasil diambil
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Budget fetched
+                  data:
+                    $ref: '#/components/schemas/Budget'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Anggaran tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    put:
+      summary: Perbarui anggaran
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - category_id
+                - month
+                - year
+                - limit_amount
+              properties:
+                category_id:
+                  type: integer
+                  example: 1
+                month:
+                  type: integer
+                  minimum: 1
+                  maximum: 12
+                  example: 7
+                year:
+                  type: integer
+                  example: 2026
+                limit_amount:
+                  type: number
+                  format: double
+                  example: 2000000
+      responses:
+        '200':
+          description: Anggaran berhasil diperbarui
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Budget updated successfully
+                  data:
+                    $ref: '#/components/schemas/Budget'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '422':
+          description: Validasi gagal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+    delete:
+      summary: Hapus anggaran
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Anggaran berhasil dihapus
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Budget deleted successfully
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: integer
+                        example: 1
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+        '404':
+          description: Anggaran tidak ditemukan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
+
+  /api/reports/summary:
+    get:
+      summary: Dapatkan laporan keuangan bulanan
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          required: false
+          description: Bulan laporan (1-12). Jika kosong, menggunakan bulan saat ini.
+          schema:
+            type: integer
+        - name: year
+          in: query
+          required: false
+          description: Tahun laporan. Jika kosong, menggunakan tahun saat ini.
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Laporan fetched
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Report fetched
+                  data:
+                    $ref: '#/components/schemas/ReportSummary'
+        '401':
+          description: Unauthorized
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Budi Santoso
+        email:
+          type: string
+          format: email
+          example: budi@example.com
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: Makanan & Minuman
+        type:
+          type: string
+          enum: [income, expense]
+          example: expense
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        category_id:
+          type: integer
+          example: 1
+        amount:
+          type: number
+          format: double
+          example: 75000
+        type:
+          type: string
+          enum: [income, expense]
+          example: expense
+        date:
+          type: string
+          format: date-time
+          example: "2026-07-16T00:00:00Z"
+        description:
+          type: string
+          example: Belanja mingguan di supermarket
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+        category:
+          $ref: '#/components/schemas/Category'
+
+    Budget:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        user_id:
+          type: integer
+          example: 1
+        category_id:
+          type: integer
+          example: 1
+        month:
+          type: integer
+          example: 7
+        year:
+          type: integer
+          example: 2026
+        limit_amount:
+          type: number
+          format: double
+          example: 1500000
+        created_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2026-07-16T15:40:27Z"
+        category:
+          $ref: '#/components/schemas/Category'
+
+    ExpenseBreakdown:
+      type: object
+      properties:
+        category_name:
+          type: string
+          example: Makanan & Minuman
+        total_amount:
+          type: number
+          format: double
+          example: 450000
+
+    BudgetUsage:
+      type: object
+      properties:
+        category:
+          type: string
+          example: Makanan & Minuman
+        spent:
+          type: number
+          format: double
+          example: 450000
+        limit:
+          type: number
+          format: double
+          example: 1000000
+        percentage:
+          type: integer
+          example: 45
+        status:
+          type: string
+          example: safe
+
+    DashboardSummary:
+      type: object
+      properties:
+        total_balance:
+          type: number
+          format: double
+          example: 5500000
+        total_income:
+          type: number
+          format: double
+          example: 8000000
+        total_expenses:
+          type: number
+          format: double
+          example: 2500000
+        expense_by_category:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExpenseBreakdown'
+        budget_usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/BudgetUsage'
+        current_month_label:
+          type: string
+          example: "Juli 2026"
+
+    CategoryTotal:
+      type: object
+      properties:
+        category_name:
+          type: string
+          example: Makanan & Minuman
+        total_amount:
+          type: number
+          format: double
+          example: 450000
+
+    ReportSummary:
+      type: object
+      properties:
+        total_income:
+          type: number
+          format: double
+          example: 8000000
+        total_expenses:
+          type: number
+          format: double
+          example: 2500000
+        net_savings:
+          type: number
+          format: double
+          example: 5500000
+        income_by_category:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryTotal'
+        expense_by_category:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryTotal'
+        month:
+          type: integer
+          example: 7
+        year:
+          type: integer
+          example: 2026
+
+    ApiError:
+      type: object
+      properties:
+        message:
+          type: string
+          example: Validation failed
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            email:
+              - "email already exists"
+            request:
+              - "Key: 'input.Email' Error:Field validation for 'Email' failed on the 'email' tag"

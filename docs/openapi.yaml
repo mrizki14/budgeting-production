@@ -1,7 +1,7 @@
 openapi: 3.0.3
 info:
   title: Budgeting API Documentation
-  description: Dokumentasi API untuk aplikasi Budgeting. Gunakan JWT Token di header `Authorization: Bearer <token>` untuk mengakses endpoint yang dilindungi.
+  description: "Dokumentasi API untuk aplikasi Budgeting. Gunakan JWT Token di header `Authorization: Bearer <token>` untuk mengakses endpoint yang dilindungi."
   version: 1.0.0
 servers:
   - url: /

@@ -5,31 +5,55 @@
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
     'Segoe UI Symbol', 'Noto Color Emoji';
 
+  /* Map white utility to obsidian-slate card/panel color */
+  --color-white: #12131e;
+
   /* Map standard blue utilities to modern Amethyst Violet / Royal Indigo */
-  --color-blue-50: #f5f3ff;
-  --color-blue-100: #ede9fe;
-  --color-blue-200: #ddd6fe;
-  --color-blue-300: #c4b5fd;
-  --color-blue-400: #a78bfa;
+  --color-blue-50: #201b35;
+  --color-blue-100: #2c254e;
+  --color-blue-200: #3c3075;
+  --color-blue-300: #4c3b9d;
+  --color-blue-400: #634ec2;
   --color-blue-500: #8b5cf6;
   --color-blue-600: #7c3aed;
-  --color-blue-700: #6d28d9;
-  --color-blue-800: #5b21b6;
-  --color-blue-900: #4c1d95;
-  --color-blue-950: #2e1065;
+  --color-blue-700: #a78bfa;
+  --color-blue-800: #c4b5fd;
+  --color-blue-900: #ddd6fe;
+  --color-blue-950: #ede9fe;
 
-  /* Map standard slate grays to warm luxury Slate-Lavender */
-  --color-slate-50: #fafafd;
-  --color-slate-100: #f3f4f9;
-  --color-slate-200: #e7e8f2;
-  --color-slate-300: #d5d7e8;
-  --color-slate-400: #a2a6c2;
-  --color-slate-500: #787b91;
-  --color-slate-600: #5e6178;
-  --color-slate-700: #4c4e61;
-  --color-slate-800: #2d2f3d;
-  --color-slate-900: #12131a;
-  --color-slate-950: #0a0a0f;
+  /* Map standard slate grays to warm luxury Slate-Lavender dark mode spectrum */
+  --color-slate-50: #0a0b10;
+  --color-slate-100: #0f1016;
+  --color-slate-200: #1d1e2c;
+  --color-slate-300: #2c2e42;
+  --color-slate-400: #6b6f8c;
+  --color-slate-500: #868ba8;
+  --color-slate-600: #a3a8c7;
+  --color-slate-700: #c4c9e6;
+  --color-slate-800: #e2e5fc;
+  --color-slate-900: #fafafd;
+  --color-slate-950: #050508;
+
+  /* Map emerald (success) colors to dark theme counterparts */
+  --color-emerald-50: #102a22;
+  --color-emerald-100: #133d2e;
+  --color-emerald-200: #195c45;
+  --color-emerald-600: #10b981;
+  --color-emerald-700: #34d399;
+  --color-emerald-950: #e6fbf2;
+
+  /* Map rose (danger/error) colors to dark theme counterparts */
+  --color-rose-50: #2c161d;
+  --color-rose-100: #451c27;
+  --color-rose-200: #662232;
+  --color-rose-600: #f43f5e;
+  --color-rose-700: #fda4af;
+  --color-rose-950: #fff1f2;
+
+  /* Map amber (warning) colors to dark theme counterparts */
+  --color-amber-100: #3d2b1f;
+  --color-amber-200: #5c3e29;
+  --color-amber-700: #fbbf24;
 }
 
 @layer base {
@@ -40,11 +64,11 @@
 
 @layer components {
   .budget-panel {
-    @apply rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-md shadow-slate-200/50 transition-all duration-300;
+    @apply rounded-[1.75rem] border border-slate-200 bg-white p-6 shadow-md shadow-slate-50/40 transition-all duration-300;
   }
 
   .budget-card {
-    @apply rounded-[1.75rem] p-6 shadow-md shadow-slate-200/50 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-200/60;
+    @apply rounded-[1.75rem] p-6 shadow-md shadow-slate-50/40 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-slate-50/50;
   }
 
   .budget-card-primary {
@@ -52,11 +76,11 @@
   }
 
   .budget-card-success {
-    @apply border border-emerald-100 bg-emerald-50/60 text-emerald-950 shadow-sm;
+    @apply border border-emerald-100 bg-emerald-50 text-emerald-950 shadow-sm;
   }
 
   .budget-card-danger {
-    @apply border border-rose-100 bg-rose-50/60 text-rose-950 shadow-sm;
+    @apply border border-rose-100 bg-rose-50 text-rose-950 shadow-sm;
   }
 
   .budget-label {
@@ -95,15 +119,15 @@
   }
 
   .budget-badge-success {
-    @apply bg-emerald-100/70 text-emerald-700;
+    @apply bg-emerald-100 text-emerald-700;
   }
 
   .budget-badge-warn {
-    @apply bg-amber-100/70 text-amber-700;
+    @apply bg-amber-100 text-amber-700;
   }
 
   .budget-badge-danger {
-    @apply bg-rose-100/70 text-rose-700;
+    @apply bg-rose-100 text-rose-700;
   }
 
   .budget-button {
@@ -163,4 +187,41 @@
   .app-loading {
     @apply grid min-h-screen place-items-center text-lg font-semibold text-slate-700;
   }
+}
+
+/* Custom Overrides for Dark Mode Compatibility */
+
+/* Ensure text-white is always pure white regardless of theme mapping */
+.text-white {
+  color: #ffffff !important;
+}
+
+/* Ensure glassmorphism elements stay semi-transparent white */
+.bg-white\/10 {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+.bg-white\/15 {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+}
+.bg-white\/20 {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+.border-white\/15 {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Keep primary accent card shadow visible on dark background */
+.budget-card-primary {
+  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.3) !important;
+}
+
+/* Let the white button in blue-600 sections pop out properly */
+.bg-blue-600 a.bg-white, 
+.bg-blue-600 button.bg-white {
+  background-color: #ffffff !important;
+  color: #7c3aed !important;
+}
+.bg-blue-600 a.bg-white:hover, 
+.bg-blue-600 button.bg-white:hover {
+  background-color: #f5f3ff !important;
 }

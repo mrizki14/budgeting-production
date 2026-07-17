@@ -19,7 +19,7 @@ export default function LandingPage() {
         <section className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 md:px-8 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,32rem)] lg:py-20">
           <div>
             <p className="budget-pill bg-blue-50 text-blue-700">Budgeting App</p>
-            <h1 className="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-slate-950 sm:text-5xl lg:text-6xl">Kelola budget pribadi dengan lebih rapi.</h1>
+            <h1 className="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">Kelola budget pribadi dengan lebih rapi.</h1>
             <p className="mt-6 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">Pantau pemasukan, pengeluaran, kategori, dan budget bulanan dalam satu dashboard yang bersih dan mudah dipahami.</p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Link to="/login" className="budget-button budget-button-primary">Mulai Sekarang</Link><a href="#fitur" className="budget-button budget-button-secondary">Lihat Fitur</a></div>
           </div>
@@ -29,7 +29,7 @@ export default function LandingPage() {
             <div className="mt-5 space-y-4"><div><div className="flex items-center justify-between text-sm"><span className="font-semibold text-slate-700">Dining Budget</span><span className="text-slate-500">62%</span></div><div className="budget-progress-track mt-2"><div className="budget-progress-fill bg-blue-500" style={{ width: '62%' }} /></div></div><div className="rounded-3xl border border-slate-200 p-4"><div className="flex items-center justify-between gap-4"><div><p className="font-semibold text-slate-800">Groceries</p><p className="text-sm text-slate-500">Pengeluaran terbaru</p></div><p className="font-semibold text-rose-600">-Rp 250.000</p></div></div></div>
           </div>
         </section>
-        <section id="fitur" className="border-y border-slate-200 bg-white py-16"><div className="mx-auto max-w-7xl px-4 md:px-8"><div className="max-w-2xl"><h2 className="text-3xl font-bold tracking-tight text-slate-950">Fitur utama untuk rutinitas finansial Anda.</h2><p className="mt-3 text-sm leading-6 text-slate-500">Semua yang dibutuhkan untuk melihat arus uang harian dan menjaga budget tetap terkendali.</p></div><div className="mt-8 grid gap-4 md:grid-cols-3">{[
+        <section id="fitur" className="border-y border-slate-200 bg-white py-16"><div className="mx-auto max-w-7xl px-4 md:px-8"><div className="max-w-2xl"><h2 className="text-3xl font-bold tracking-tight text-slate-900">Fitur utama untuk rutinitas finansial Anda.</h2><p className="mt-3 text-sm leading-6 text-slate-500">Semua yang dibutuhkan untuk melihat arus uang harian dan menjaga budget tetap terkendali.</p></div><div className="mt-8 grid gap-4 md:grid-cols-3">{[
           ['Transaksi', 'Catat pemasukan dan pengeluaran', 'Simpan setiap transaksi dengan kategori agar alur uang lebih mudah dilacak.'],
           ['Budget', 'Atur budget per kategori', 'Tetapkan batas bulanan dan pantau progres pemakaian dari dashboard.'],
           ['Laporan', 'Pantau laporan bulanan', 'Lihat ringkasan income, expenses, dan balance untuk mengambil keputusan lebih cepat.'],
